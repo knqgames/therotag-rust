@@ -1,23 +1,23 @@
 PLUGIN.Name = "RotAG-NameChanger"
 PLUGIN.Title = "RotAG-NameChanger"
-PLUGIN.Version = V(2, 1, 0)
+PLUGIN.Version = V(2, 1, 1)
 PLUGIN.Description = "NameChanger plugin for the experimental RUST branch"
 PLUGIN.Author = "TheRotAG"
 PLUGIN.HasConfig = true
 PLUGIN.ResourceId  = 737
 
 ----------------------------------------- LOCALS -----------------------------------------
-local mod, cmds, msgs, sets  = {}, {}, {}, {}
+local auth, cmds, msgs, sets  = {}, {}, {}, {}
 local function SendMessage(player, msg)
 	player:SendConsoleCommand("chat.add \"".. msgs.ChatName.."\" \"".. msg .."\"")
 end
 
-local function HasAcces(player)
-	return player:GetComponent("BaseNetworkable").net.connection.authLevel >= mod.Auth_LVL
+local function HasAccess(player)
+	return player:GetComponent("BaseNetworkable").net.connection.authLevel >= auth.LVL
 end
 
 function PLUGIN:SendHelpText(player)
-	if HasAcces(player) then
+	if HasAccess(player) then
 		SendMessage(player, msgs.Help1:format(cmds.Name))
 		SendMessage(player, msgs.Help2:format(cmds.TempName))
 		SendMessage(player, msgs.Help3:format(cmds.NameOff))
@@ -26,11 +26,8 @@ end
 ------------------------------------------------------------------------------------------
 
 function PLUGIN:Init()
-		mod.Auth_LVL = self.Config.mod_LvL or 1
-				
-		self.Config.Original = self.Config.Original or ""
-		self.Config.New = self.Config.New or ""
-		self.Config.mod_LvL = mod.Auth_LVL
+		auth.LVL = self.Config.Auth_LvL or 1
+		self.Config.Auth_LvL = auth.LVL
 		
 		self.Config.Messages = self.Config.Messages or {}
 		self.Config.Messages.NoPermission = self.Config.Messages.NoPermission or "You don't have permission to use this command!"
@@ -73,7 +70,7 @@ end
 
 function PLUGIN:C_Name(player, cmd, args)
 	if args.Length > 0 then
-		if HasAcces(player) then
+		if HasAccess(player) then
 			local pID = rust.UserIDFromPlayer( player )
 			local getOriginal = tostring(args[0])
 			NameData.Original[pID] = NameData.Original[pID] or {}
@@ -91,7 +88,7 @@ end
 
 function PLUGIN:C_TempName(player, cmd, args)
 	if args.Length > 0 then
-		if HasAcces(player) then
+		if HasAccess(player) then
 			local pID = rust.UserIDFromPlayer( player )
 			local getNew = tostring(args[0])
 			NameData.New[pID] = NameData.New[pID] or {}
@@ -109,15 +106,25 @@ function PLUGIN:C_TempName(player, cmd, args)
 	end
 end
 
-
 function PLUGIN:C_NameOff(player, cmd, args)
 	if args.Length == 0 then
-		datafile.GetDataTable("NameChanger")
+		if HasAccess(player) then
+			datafile.GetDataTable("NameChanger")
+			local pID = rust.UserIDFromPlayer(player)
+			local getOriginal = NameData.Original[pID].Name
+			player.displayName = getOriginal
+			NameData.New[pID].Name = getOriginal
+			self:SaveData()
+			SendMessage(player, msgs.Ok)
+		else
+			SendMessage(player, msgs.NoPermission)
+		end
+	end
+end
+
+function PLUGIN:OnPlayerInit( player )
+	if HasAccess(player) then
 		local pID = rust.UserIDFromPlayer(player)
-		local getOriginal = NameData.Original[pID].Name
-		player.displayName = getOriginal
-		NameData.New[pID].Name = getOriginal
-		self:SaveData()
-		SendMessage(player, msgs.Ok)
+		player.displayName = NameData.Original[pID].Name
 	end
 end
