@@ -7,13 +7,13 @@ PLUGIN.HasConfig = true
 PLUGIN.ResourceId  = 737
 
 ----------------------------------------- LOCALS -----------------------------------------
-local auth, cmds, msgs, sets  = {}, {}, {}, {}
+local mod, cmds, msgs, sets  = {}, {}, {}, {}
 local function SendMessage(player, msg)
 	player:SendConsoleCommand("chat.add \"".. msgs.ChatName.."\" \"".. msg .."\"")
 end
 
 local function HasAccess(player)
-	return player:GetComponent("BaseNetworkable").net.connection.authLevel >= auth.LVL
+	return player:GetComponent("BaseNetworkable").net.connection.authLevel >= mod.Auth_LVL
 end
 
 function PLUGIN:SendHelpText(player)
@@ -26,8 +26,8 @@ end
 ------------------------------------------------------------------------------------------
 
 function PLUGIN:Init()
-		auth.LVL = self.Config.Auth_LvL or 1
-		self.Config.Auth_LvL = auth.LVL
+		mod.Auth_LVL = self.Config.Auth_LvL or 1
+		self.Config.Auth_LvL = mod.Auth_LVL
 		
 		self.Config.Messages = self.Config.Messages or {}
 		self.Config.Messages.NoPermission = self.Config.Messages.NoPermission or "You don't have permission to use this command!"
@@ -37,7 +37,7 @@ function PLUGIN:Init()
 		self.Config.Messages.Help1 = self.Config.Messages.Help1 or "use /%s \\\"desired name\\\" -- to change your default name"
 		self.Config.Messages.Help2 = self.Config.Messages.Help2 or "use /%s \\\"desired name\\\" -- to change your current name to a temporary one"
 		self.Config.Messages.Help3 = self.Config.Messages.Help3 or "use /%s -- to load your default name"
-		self.Config.Messages.Syntax = self.Config.Messages.Syntax or "Command Error! Use /%s \\\"desired name\\\" %s"
+		self.Config.Messages.Syntax = self.Config.Messages.Syntax or "Command Error! Use /%s \\\"desired name\\\""
 		
 		self.Config.Commands = self.Config.Commands or {}
 		self.Config.Commands.Name = self.Config.Commands.Name or "name"
